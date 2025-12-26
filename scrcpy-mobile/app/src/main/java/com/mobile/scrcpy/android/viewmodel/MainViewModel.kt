@@ -217,7 +217,11 @@ class MainViewModel : ViewModel() {
     }
     
     fun getConnectionState() = scrcpyClient.connectionState
-    fun getVideoStream() = scrcpyClient.videoStream
+    fun getVideoStream() = scrcpyClient.videoStreamState
+    
+    suspend fun sendKeyEvent(keyCode: Int): Result<Boolean> {
+        return scrcpyClient.sendKeyEvent(keyCode)
+    }
     
     suspend fun generateAdbKeys(): Result<Unit> {
         return withContext(Dispatchers.IO) {

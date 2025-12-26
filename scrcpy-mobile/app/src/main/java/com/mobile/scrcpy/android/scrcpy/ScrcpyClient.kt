@@ -8,8 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
-import java.io.InputStream
-import java.net.Socket
+import dadb.AdbShellStream
 
 class ScrcpyClient(
     private val context: Context,
@@ -26,14 +25,13 @@ class ScrcpyClient(
         private const val LOCAL_PORT = 27183
     }
     
-    private var videoSocket: Socket? = null
-    private var controlSocket: Socket? = null
+    private var videoStream: AdbShellStream? = null
     
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
     val connectionState: StateFlow<ConnectionState> = _connectionState
     
-    private val _videoStream = MutableStateFlow<Any?>(null)
-    val videoStream: StateFlow<Any?> = _videoStream
+    private val _videoStreamState = MutableStateFlow<AdbShellStream?>(null)
+    val videoStreamState: StateFlow<AdbShellStream?> = _videoStreamState
     
     /**
      * 通过设备 ID 连接 Scrcpy
@@ -73,35 +71,20 @@ class ScrcpyClient(
             }
             Log.d(TAG, "步骤 2/5: scrcpy-server 推送成功 ✓")
             
-            // 3. 启动 scrcpy server
-            Log.d(TAG, "步骤 3/5: 启动 scrcpy server")
-            val serverPort = LOCAL_PORT
-            val command = buildScrcpyCommand(maxSize, bitRate, maxFps, serverPort)
+            // 3. 启动 scrcpy server 并获取视频流
+            Log.d(TAG, "步骤 3/5: 启动 scrcpy server 并获取视频流")
+            val command = buildScrcpyCommand(maxSize, bitRate, maxFps)
             Log.d(TAG, "启动命令: $command")
             
-            connection.executeShellAsync(command)
-            
-            // 等待服务器启动
-            Log.d(TAG, "等待 scrcpy server 启动（2秒）...")
-            Thread.sleep(2000)
-            Log.d(TAG, "步骤 3/5: scrcpy server 启动完成 ✓")
-            
-            // 4. 设置端口转发
-            Log.d(TAG, "步骤 4/5: 设置端口转发 $LOCAL_PORT -> $serverPort")
-            val forwardResult = connection.setupPortForward(LOCAL_PORT, serverPort)
-            if (forwardResult.isFailure) {
-                throw forwardResult.exceptionOrNull() ?: Exception("端口转发失败")
+            // 通过 shell 流启动 scrcpy，视频数据会通过 stdout 返回
+            val stream = connection.openShellStream(command)
+            if (stream == null) {
+                throw Exception("无法打开 shell 流")
             }
-            Log.d(TAG, "步骤 4/5: 端口转发设置成功 ✓")
             
-            // 5. 连接到 scrcpy server
-            Log.d(TAG, "步骤 5/5: 连接到 localhost:$LOCAL_PORT")
-            videoSocket = Socket("localhost", LOCAL_PORT)
-            Log.d(TAG, "Socket 连接成功")
-            
-            _videoStream.value = videoSocket?.getInputStream()
-            Log.d(TAG, "视频流获取成功")
-            Log.d(TAG, "步骤 5/5: 连接到 scrcpy server 成功 ✓")
+            videoStream = stream
+            _videoStreamState.value = stream
+            Log.d(TAG, "步骤 3/5: scrcpy server 启动成功，视频流已建立 ✓")
             
             _connectionState.value = ConnectionState.Connected
             Log.d(TAG, "========== Scrcpy 连接完成 ==========")
@@ -148,13 +131,11 @@ class ScrcpyClient(
             Log.d(TAG, "========== 开始断开 Scrcpy 连接 ==========")
             _connectionState.value = ConnectionState.Disconnecting
             
-            // 1. 关闭 socket 连接
-            Log.d(TAG, "关闭 socket 连接...")
-            videoSocket?.close()
-            controlSocket?.close()
-            videoSocket = null
-            controlSocket = null
-            _videoStream.value = null
+            // 1. 关闭视频流
+            Log.d(TAG, "关闭视频流...")
+            videoStream?.close()
+            videoStream = null
+            _videoStreamState.value = null
             
             // 2. 停止 scrcpy server
             if (currentDeviceId != null) {
@@ -162,10 +143,6 @@ class ScrcpyClient(
                 if (connection != null) {
                     Log.d(TAG, "停止 scrcpy server...")
                     connection.executeShell("pkill -f scrcpy-server")
-                    
-                    // 3. 移除端口转发
-                    Log.d(TAG, "移除端口转发...")
-                    connection.removePortForward(LOCAL_PORT)
                 }
             }
             
@@ -224,17 +201,19 @@ class ScrcpyClient(
         }
     }
     
-    private fun buildScrcpyCommand(maxSize: Int, bitRate: Int, maxFps: Int, serverPort: Int): String {
+    private fun buildScrcpyCommand(maxSize: Int, bitRate: Int, maxFps: Int): String {
+        // 使用 tunnel_forward=true 让视频数据通过 stdout 输出
         return "CLASSPATH=$SCRCPY_SERVER_PATH app_process / com.genymobile.scrcpy.Server " +
                 "$SCRCPY_VERSION " +
-                "log_level=info " +
+                "log_level=error " +
                 "max_size=$maxSize " +
                 "bit_rate=$bitRate " +
                 "max_fps=$maxFps " +
-                "tunnel_forward=false " +
-                "server_port=$serverPort " +
-                "control=true " +
-                "cleanup=true"
+                "tunnel_forward=true " +
+                "control=false " +
+                "cleanup=true " +
+                "send_device_meta=true " +
+                "send_frame_meta=false"
     }
     
     suspend fun sendTouchEvent(x: Int, y: Int, action: TouchAction): Result<Boolean> {

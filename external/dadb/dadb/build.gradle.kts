@@ -7,10 +7,6 @@ plugins {
     `java-library`
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     api("com.squareup.okio:okio:2.10.0")
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
@@ -27,5 +23,5 @@ tasks.test {
 }
 
 mavenPublishing {
-    publishToMavenCentral(true)
+    publishToMavenCentral(automaticRelease = true)
 }

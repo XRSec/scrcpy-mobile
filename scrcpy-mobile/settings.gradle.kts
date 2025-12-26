@@ -4,6 +4,13 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "com.vanniktech.maven.publish") {
+                useModule("com.vanniktech:gradle-maven-publish-plugin:0.25.3")
+            }
+        }
+    }
 }
 
 dependencyResolutionManagement {
