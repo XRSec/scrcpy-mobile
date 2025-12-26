@@ -1,0 +1,24 @@
+[submodule "scrcpy"]
+	path = scrcpy
+	url = https://github.com/Genymobile/scrcpy.git
+[submodule "external/adb-mobile"]
+	path = external/adb-mobile
+	url = https://github.com/wsvn53/adb-mobile.git
+[submodule "ios-cmake"]
+	path = ios-cmake
+	url = https://github.com/leetal/ios-cmake.git
+[submodule "scrcpy-ios/chainable-view"]
+	path = scrcpy-ios/chainable-view
+	url = https://github.com/wsvn53/chainable-view.git
+[submodule "scrcpy-ios/Keychain-iOS-ObjC"]
+	path = scrcpy-ios/Keychain-iOS-ObjC
+	url = https://github.com/Keyflow/Keychain-iOS-ObjC.git
+[submodule "scrcpy-ios/MBProgressHUD"]
+	path = scrcpy-ios/MBProgressHUD
+	url = https://github.com/jdg/MBProgressHUD.git
+[submodule "scrcpy-ios/CocoaHTTPServer"]
+	path = scrcpy-ios/CocoaHTTPServer
+	url = https://github.com/robbiehanson/CocoaHTTPServer.git
+[submodule "scrcpy-ios/noVNC"]
+	path = scrcpy-ios/noVNC
+	url = https://github.com/novnc/noVNC.git

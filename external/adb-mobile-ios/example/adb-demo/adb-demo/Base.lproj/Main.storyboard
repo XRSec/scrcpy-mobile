@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="20037" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="20020"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Android IP Address" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="v20-jS-SZz">
+                                <rect key="frame" x="25" y="255" width="364" height="34"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XqY-r5-3pI">
+                                <rect key="frame" x="25" y="306" width="364" height="31"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="tinted" title="ADB Connect"/>
+                                <connections>
+                                    <action selector="connect:" destination="BYZ-38-t0r" eventType="touchUpInside" id="6F3-SU-Q1b"/>
+                                </connections>
+                            </button>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="shell ip route" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="5Fx-Aq-myP">
+                                <rect key="frame" x="25" y="431" width="364" height="34"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="kUL-cC-s11">
+                                <rect key="frame" x="25" y="473" width="364" height="31"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="tinted" title="Execute"/>
+                                <connections>
+                                    <action selector="execute:" destination="BYZ-38-t0r" eventType="touchUpInside" id="v4q-hA-fOs"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="v20-jS-SZz" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="3jE-Of-fei"/>
+                            <constraint firstItem="kUL-cC-s11" firstAttribute="top" secondItem="5Fx-Aq-myP" secondAttribute="bottom" constant="8" id="B8f-wK-nb9"/>
+                            <constraint firstItem="XqY-r5-3pI" firstAttribute="top" secondItem="v20-jS-SZz" secondAttribute="bottom" constant="17" id="Ph8-9F-npy"/>
+                            <constraint firstItem="kUL-cC-s11" firstAttribute="leading" secondItem="XqY-r5-3pI" secondAttribute="leading" id="SfJ-nD-n8w"/>
+                            <constraint firstItem="XqY-r5-3pI" firstAttribute="trailing" secondItem="v20-jS-SZz" secondAttribute="trailing" id="aTy-83-6w6"/>
+                            <constraint firstItem="kUL-cC-s11" firstAttribute="trailing" secondItem="XqY-r5-3pI" secondAttribute="trailing" id="dRG-HX-IHZ"/>
+                            <constraint firstItem="XqY-r5-3pI" firstAttribute="leading" secondItem="v20-jS-SZz" secondAttribute="leading" id="gmX-3P-4lb"/>
+                            <constraint firstItem="kUL-cC-s11" firstAttribute="trailing" secondItem="5Fx-Aq-myP" secondAttribute="trailing" id="qVO-0o-jia"/>
+                            <constraint firstItem="v20-jS-SZz" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="25" id="qmF-g7-baQ"/>
+                            <constraint firstItem="5Fx-Aq-myP" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="qtM-PQ-ien"/>
+                            <constraint firstItem="kUL-cC-s11" firstAttribute="leading" secondItem="5Fx-Aq-myP" secondAttribute="leading" id="x4i-Xp-1kQ"/>
+                            <constraint firstItem="v20-jS-SZz" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="211" id="yQ1-N4-oDy"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="adbCommand" destination="5Fx-Aq-myP" id="1cx-RR-ABA"/>
+                        <outlet property="adbConnect" destination="XqY-r5-3pI" id="HPT-AA-OAh"/>
+                        <outlet property="adbExecute" destination="kUL-cC-s11" id="cqG-4i-JQW"/>
+                        <outlet property="adbHost" destination="v20-jS-SZz" id="oCP-Ws-nem"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="8.6956521739130448" y="71.651785714285708"/>
+        </scene>
+    </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Screen Remote</string>
+    <string name="sessions">会话</string>
+    <string name="actions">自动化</string>
+    <string name="settings">设置</string>
+    <string name="no_sessions">没有 Scrcpy Sessions</string>
+    <string name="no_actions">没有自动化</string>
+    <string name="add_session">添加会话</string>
+    <string name="add_action">添加自动化</string>
+    <string name="general">通用</string>
+    <string name="appearance">外观</string>
+    <string name="keep_alive">后台保持活跃</string>
+    <string name="show_on_lock_screen">在灵动岛显示实况</string>
+    <string name="about">关于 Scrcpy Remote</string>
+    <string name="adb_management">ADB 管理</string>
+    <string name="manage_adb_keys">管理 ADB 密钥</string>
+    <string name="adb_pairing">使用配对码进行 ADB 配对</string>
+    <string name="file_transfer_path">文件发送默认路径</string>
+    <string name="activity_log">应用日志</string>
+    <string name="enable_activity_log">启用日志记录</string>
+    <string name="done">完成</string>
+    <string name="connecting">连接中…</string>
+    <string name="adb_connecting">ADB\n🌐 连接中</string>
+    <string name="adb_connected">ADB\n✅ 已连接</string>
+    <string name="scrcpy_connected">Scrcpy\n已连接</string>
+    <string name="connect_failed">连接失败</string>
+    <string name="adb_unauthorized">设备未授权，请在设备上确认授权</string>
+    <string name="click_to_connect">点击连接</string>
+    <string name="cancel">取消</string>
+    <string name="connect">连接会话</string>
+    <string name="edit_session">编辑会话</string>
+    <string name="copy_url_scheme">复制 URL Scheme</string>
+    <string name="delete_session">删除会话</string>
+    <string name="url_copied">URL 已复制</string>
+    <string name="confirm_delete">确认删除</string>
+    <string name="confirm_delete_message">确定要删除会话 "%s" 吗？</string>
+    <string name="delete">删除</string>
+    <string name="connection_info">连接信息</string>
+    <string name="copy">复制</string>
+    <string name="copied">已复制</string>
+</resources>

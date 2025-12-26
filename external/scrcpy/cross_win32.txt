@@ -1,0 +1,18 @@
+# apt install mingw-w64 mingw-w64-tools
+
+[binaries]
+name = 'mingw'
+c = 'i686-w64-mingw32-gcc'
+cpp = 'i686-w64-mingw32-g++'
+ar = 'i686-w64-mingw32-ar'
+strip = 'i686-w64-mingw32-strip'
+pkg-config = 'i686-w64-mingw32-pkg-config'
+# backward compatibility
+pkgconfig = 'i686-w64-mingw32-pkg-config'
+windres = 'i686-w64-mingw32-windres'
+
+[host_machine]
+system = 'windows'
+cpu_family = 'x86'
+cpu = 'i686'
+endian = 'little'

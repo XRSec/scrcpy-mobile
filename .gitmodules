@@ -1,0 +1,21 @@
+[submodule "external/scrcpy"]
+	path = external/scrcpy
+	url = https://github.com/Genymobile/scrcpy.git
+	branch = main
+	ignore = dirty
+	fetchRecurseSubmodules = false
+[submodule "external/scrcpy-mobile-ios"]
+	path = external/scrcpy-mobile-ios
+	url = https://github.com/wsvn53/scrcpy-mobile.git
+	branch = main
+	ignore = dirty
+	fetchRecurseSubmodules = false
+[submodule "external/adb-mobile-ios"]
+	path = external/adb-mobile-ios
+	url = https://github.com/wsvn53/adb-mobile.git
+	branch = main
+	ignore = dirty
+	fetchRecurseSubmodules = false
+[submodule "external/dadb"]
+	path = external/dadb
+	url = https://github.com/mobile-dev-inc/dadb.git

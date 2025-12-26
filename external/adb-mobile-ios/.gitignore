@@ -1,0 +1,5 @@
+android-tools/build
+output
+cmake-build-debug
+.idea
+xcuserdata

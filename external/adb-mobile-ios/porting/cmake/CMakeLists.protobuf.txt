@@ -1,0 +1,65 @@
+cmake_minimum_required(VERSION 3.4.1)
+set(CMAKE_CXX_STANDARD 17)
+project(protobuf C CXX)
+set(PROJECT_NAME protobuf)
+
+message(STATUS "CMake Path: ${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "Platform: ${PLATFORM}")
+
+include_directories(
+        ../../external/protobuf/src
+        ../../external/protobuf/third_party/abseil-cpp
+        ../../external/protobuf/third_party/utf8_range
+        ../../external/protobuf/third_party/googletest/googletest/include
+        ../../external/protobuf/third_party/googletest/googlemock/include
+)
+
+file(GLOB protobuf_srcs 
+        ../../external/protobuf/src/google/protobuf/*.cc
+        ../../external/protobuf/src/google/protobuf/stubs/*.cc
+        ../../external/protobuf/src/google/protobuf/io/*.cc
+        ../../external/protobuf/src/google/protobuf/util/*cc
+        ../../external/protobuf/src/google/protobuf/util/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/strings/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/strings/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/strings/internal/str_format/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/types/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/flags/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/synchronization/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/synchronization/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/hash/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/hash/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/debugging/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/debugging/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/crc/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/crc/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/status/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/status/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/time/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/time/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/time/internal/cctz/src/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/container/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/container/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/numeric/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/profiling/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/log/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/log/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/random/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/random/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/functional/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/base/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/base/internal/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/debugging/*.cc
+        ../../external/protobuf/third_party/abseil-cpp/absl/debugging/internal/*.cc
+        ../../external/protobuf/third_party/utf8_range/*.cc
+        ../../external/protobuf/third_party/utf8_range/utf8_range.c
+)
+list(FILTER protobuf_srcs EXCLUDE REGEX "benchmarks.cc|.*_test\\.*|.*_unittest\\.*|.*_benchmark\\.*|.*test_util.*|.*_tester.*")
+
+foreach(src IN LISTS protobuf_srcs)
+        message(STATUS "- ${src}")
+endforeach()
+
+add_library(protobuf STATIC
+        ${protobuf_srcs}
+        )

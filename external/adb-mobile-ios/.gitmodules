@@ -1,0 +1,18 @@
+[submodule "android-tools"]
+	path = android-tools
+	url = https://github.com/nmeum/android-tools.git
+[submodule "ios-cmake"]
+	path = ios-cmake
+	url = https://github.com/leetal/ios-cmake.git
+[submodule "external/lz4"]
+	path = external/lz4
+	url = https://android.googlesource.com/platform/external/lz4
+[submodule "external/zstd"]
+	path = external/zstd
+	url = https://android.googlesource.com/platform/external/zstd
+[submodule "external/brotli"]
+	path = external/brotli
+	url = https://android.googlesource.com/platform/external/brotli
+[submodule "external/protobuf"]
+	path = external/protobuf
+	url = https://github.com/protocolbuffers/protobuf.git

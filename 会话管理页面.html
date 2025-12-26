@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>创建会话</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    html {
+      width: 408px;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f4f5f7;
+      margin: 0 auto;
+    }
+
+    /* 整个窗体 */
+    body {
+      width: 408px;
+      height: 740px;
+      margin: 0;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* 创建会话页面容器 */
+    .page {
+      width: 95%;
+      height: 80%;
+      display: flex;
+      flex-direction: column;
+      background: #ececec;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+
+    /* 顶部导航 */
+    .nav {
+      flex-shrink: 0;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      border-bottom: 1px solid #e5e5ea;
+    }
+
+    .nav a {
+      color: #007aff;
+      text-decoration: none;
+      font-size: 15px;
+    }
+
+    .nav-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* 可滚动内容区域 */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      color: #6e6e73;
+      margin: 0 0 8px 12px;
+    }
+
+    .card {
+      border-top: 1px solid #e5e5ea;
+      border-bottom: 1px solid #e5e5ea;
+      background: #ffffff;
+      border-radius: 8px;
+      width: 93%;
+      margin: 0 auto;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e5ea;
+    }
+
+    .row:has(> input) {
+      padding: 0 12px;
+    }
+
+    .row > input {
+      height: 46px;
+    }
+
+    .row:last-child {
+      border-bottom: none;
+    }
+
+    .row-text {
+      flex: 1;
+    }
+
+    .row-title {
+      font-size: 16px;
+    }
+
+    .row-sub {
+      font-size: 13px;
+      color: #959595;
+      margin-top: 4px;
+    }
+
+    .row-trailing {
+      margin-left: 12px;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      background: transparent;
+    }
+
+    /* Switch */
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 26px;
+    }
+
+    .switch input {
+      display: none;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #ccc;
+      border-radius: 13px;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      left: 2px;
+      top: 2px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+
+    .switch input:checked+.slider {
+      background: #007aff;
+    }
+
+    .switch input:checked+.slider::before {
+      transform: translateX(18px);
+    }
+
+    /* 底部保存按钮 */
+    .footer {
+      flex-shrink: 0;
+      padding: 12px;
+      border-top: 1px solid #e5e5ea;
+    }
+
+    .save-btn {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #007aff;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* 下拉菜单 */
+    .dropdown {
+      position: relative;
+      width: 80px;
+      display: block;
+      margin-left: 0;
+      text-align: right;
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      background: #ffffff;
+      border: 1px solid #e5e5ea;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      min-width: 70px;
+      left: 15px;
+      text-align: center;
+      z-index: 1000;
+      overflow: hidden;
+    }
+
+    .dropdown-menu.show {
+      display: block;
+      /* right: unset; */
+    }
+
+    .dropdown-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 16px;
+      border-bottom: 1px solid #e5e5ea;
+    }
+
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-item:hover {
+      background: #f4f5f7;
+    }
+
+    .dropdown-item.selected {
+      color: #007aff;
+      font-weight: 600;
+    }
+
+    .clickable {
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="page">
+    <div class="nav">
+      <a href="#">取消</a>
+      <div class="nav-title">创建会话</div>
+      <a href="#">保存</a>
+    </div>
+
+    <div class="content">
+
+      <div class="section">
+        <div class="section-title">远程设备</div>
+        <div class="card">
+          <div class="row"><input type="text" value="" placeholder="会话名称（可选）" /></div>
+          <div class="row"><input type="text" value="" placeholder="主机（192.168.1.5）" /></div>
+          <div class="row"><input type="number" value="" placeholder="端口" /></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">连接选项</div>
+        <div class="card">
+          <div class="row">
+            <div class="row-text">
+              <div class="row-title">强制使用 ADB 转发连接</div>
+            </div>
+            <div class="row-trailing">
+              <label class="switch">
+                <input type="checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">ADB 会话选项</div>
+        <div class="card">
+          <div class="row">
+            <input type="text" value="" placeholder="会话名称（可选）" />
+          </div>
+          <div class="row">
+            <input type="text" value="" placeholder="码率，默认：4M 或 4000K" />
+          </div>
+          <div class="row clickable" id="videoCodecRow">
+            <div class="row-text">
+              <div class="row-title">视频编码格式</div>
+            </div>
+            <div class="row-trailing dropdown">
+              <span id="videoCodecValue">h264</span> ›
+              <div class="dropdown-menu" id="videoCodecMenu">
+                <div class="dropdown-item selected" data-value="h264">h264</div>
+                <div class="dropdown-item" data-value="h265">h265</div>
+                <div class="dropdown-item" data-value="av1">av1</div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-text">
+              <div class="row-title">视频编码器</div>
+            </div>
+            <div class="row-trailing">默认 ›</div>
+          </div>
+          <div class="row">
+            <div class="row-text">
+              <div class="row-title">启用音频（Android 11+）</div>
+            </div>
+            <div class="row-trailing">
+              <label class="switch">
+                <input type="checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-text">
+              <div class="row-title">启用剪贴板同步</div>
+            </div>
+            <div class="row-trailing">
+              <label class="switch">
+                <input type="checkbox" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-text">
+              <div class="row-title">连接后关闭远程屏幕</div>
+            </div>
+            <div class="row-trailing">
+              <label class="switch">
+                <input type="checkbox" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-text">
+              <div class="row-title">断开后锁定远程屏幕（按电源键）</div>
+            </div>
+            <div class="row-trailing">
+              <label class="switch">
+                <input type="checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-text">
+              <div class="row-title">断开后不清理（保持屏幕状态）</div>
+            </div>
+            <div class="row-trailing">
+              <label class="switch">
+                <input type="checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-text">
+              <div class="row-title">使用期间保持设备唤醒</div>
+            </div>
+            <div class="row-trailing">
+              <label class="switch">
+                <input type="checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-text">
+              <div class="row-title">Enable Hardware Decoding</div>
+            </div>
+            <div class="row-trailing">
+              <label class="switch">
+                <input type="checkbox" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-text">
+              <div class="row-title">Follow Remote Orientation Change</div>
+            </div>
+            <div class="row-trailing">
+              <label class="switch">
+                <input type="checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-text">
+              <div class="row-title">启动新的显示</div>
+            </div>
+            <div class="row-trailing">
+              <label class="switch">
+                <input type="checkbox" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <button class="save-btn">保存会话</button>
+      </div>
+    </div>
+
+    <script>
+      // 视频编码格式下拉菜单
+      const videoCodecRow = document.getElementById('videoCodecRow');
+      const videoCodecMenu = document.getElementById('videoCodecMenu');
+      const videoCodecValue = document.getElementById('videoCodecValue');
+
+      videoCodecRow.addEventListener('click', (e) => {
+        e.stopPropagation();
+        videoCodecMenu.classList.toggle('show');
+      });
+
+      // 选择编码格式
+      videoCodecMenu.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const value = item.getAttribute('data-value');
+          videoCodecValue.textContent = value;
+
+          // 更新选中状态
+          videoCodecMenu.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+          item.classList.add('selected');
+
+          videoCodecMenu.classList.remove('show');
+        });
+      });
+
+      // 点击其他地方关闭下拉菜单
+      document.addEventListener('click', () => {
+        videoCodecMenu.classList.remove('show');
+      });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,76 @@
+# This file is intended to be sourced by other scripts, not executed
+
+process_args() {
+    if [[ $# != 3 ]]
+    then
+        # <host>: linux, macos, win32 or win64
+        # <build_type>: native or cross
+        # <link_type>: static or shared
+        echo "Syntax: $0 <host> <build_type> <link_type>" >&2
+        exit 1
+    fi
+
+    HOST="$1"
+    BUILD_TYPE="$2"
+    LINK_TYPE="$3"
+    DIRNAME="$HOST-$BUILD_TYPE-$LINK_TYPE"
+
+    if [[ "$BUILD_TYPE" != native && "$BUILD_TYPE" != cross ]]
+    then
+        echo "Unsupported build type (expected native or cross): $BUILD_TYPE" >&2
+        exit 1
+    fi
+
+    if [[ "$LINK_TYPE" != static && "$LINK_TYPE" != shared ]]
+    then
+        echo "Unsupported link type (expected static or shared): $LINK_TYPE" >&2
+        exit 1
+    fi
+
+    if [[ "$BUILD_TYPE" == cross ]]
+    then
+        if [[ "$HOST" = win32 ]]
+        then
+            HOST_TRIPLET=i686-w64-mingw32
+        elif [[ "$HOST" = win64 ]]
+        then
+            HOST_TRIPLET=x86_64-w64-mingw32
+        else
+            echo "Unsupported cross-build to host: $HOST" >&2
+            exit 1
+        fi
+    fi
+}
+
+DEPS_DIR=$(dirname ${BASH_SOURCE[0]})
+cd "$DEPS_DIR"
+
+PATCHES_DIR="$PWD/patches"
+
+WORK_DIR="$PWD/work"
+SOURCES_DIR="$WORK_DIR/sources"
+BUILD_DIR="$WORK_DIR/build"
+INSTALL_DIR="$WORK_DIR/install"
+
+mkdir -p "$INSTALL_DIR" "$SOURCES_DIR" "$WORK_DIR"
+
+checksum() {
+    local file="$1"
+    local sum="$2"
+    echo "$file: verifying checksum..."
+    echo "$sum  $file" | shasum -a256 -c
+}
+
+get_file() {
+    local url="$1"
+    local file="$2"
+    local sum="$3"
+    if [[ -f "$file" ]]
+    then
+        echo "$file: found"
+    else
+        echo "$file: not found, downloading..."
+        wget "$url" -O "$file"
+    fi
+    checksum "$file" "$sum"
+}
