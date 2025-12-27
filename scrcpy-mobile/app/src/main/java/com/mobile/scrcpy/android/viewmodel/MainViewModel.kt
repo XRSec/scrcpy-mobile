@@ -1,6 +1,6 @@
 package com.mobile.scrcpy.android.viewmodel
 
-import android.util.Log
+import com.mobile.scrcpy.android.utils.LogManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mobile.scrcpy.android.ScreenRemoteApp
@@ -124,6 +124,28 @@ class MainViewModel : ViewModel() {
         }
     }
     
+    fun saveSessionData(sessionData: com.mobile.scrcpy.android.data.SessionData) {
+        if (_editingSessionId.value != null) {
+            updateSessionData(sessionData)
+        } else {
+            addSessionData(sessionData)
+        }
+    }
+    
+    private fun addSessionData(sessionData: com.mobile.scrcpy.android.data.SessionData) {
+        viewModelScope.launch {
+            sessionRepository.addSession(sessionData)
+            hideAddSessionDialog()
+        }
+    }
+    
+    private fun updateSessionData(sessionData: com.mobile.scrcpy.android.data.SessionData) {
+        viewModelScope.launch {
+            sessionRepository.updateSession(sessionData)
+            hideAddSessionDialog()
+        }
+    }
+
     fun saveSession(session: ScrcpySession, host: String, port: String) {
         if (_editingSessionId.value != null) {
             updateSession(session, host, port)
@@ -245,10 +267,10 @@ class MainViewModel : ViewModel() {
                 // 生成新密钥
                 dadb.AdbKeyPair.generate(privateKeyFile, publicKeyFile)
                 
-                Log.d("MainViewModel", "新的 ADB 密钥对生成成功")
+                LogManager.d("MainViewModel", "新的 ADB 密钥对生成成功")
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.e("MainViewModel", "生成 ADB 密钥失败: ${e.message}", e)
+                LogManager.e("MainViewModel", "生成 ADB 密钥失败: ${e.message}", e)
                 Result.failure(e)
             }
         }
@@ -296,13 +318,13 @@ class MainViewModel : ViewModel() {
                 // 保存公钥
                 publicKeyFile.writeText(publicKey)
                 
-                Log.d("MainViewModel", "ADB 密钥保存成功")
-                Log.d("MainViewModel", "私钥文件: ${privateKeyFile.absolutePath}")
-                Log.d("MainViewModel", "公钥文件: ${publicKeyFile.absolutePath}")
+                LogManager.d("MainViewModel", "ADB 密钥保存成功")
+                LogManager.d("MainViewModel", "私钥文件: ${privateKeyFile.absolutePath}")
+                LogManager.d("MainViewModel", "公钥文件: ${publicKeyFile.absolutePath}")
                 
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.e("MainViewModel", "保存 ADB 密钥失败: ${e.message}", e)
+                LogManager.e("MainViewModel", "保存 ADB 密钥失败: ${e.message}", e)
                 Result.failure(e)
             }
         }
@@ -314,6 +336,34 @@ class MainViewModel : ViewModel() {
             Result.success(keysDir)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+    
+    suspend fun importAdbKeys(privateKey: String, publicKey: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val keysDir = File(ScreenRemoteApp.instance.filesDir, "adb_keys")
+                if (!keysDir.exists()) {
+                    keysDir.mkdirs()
+                }
+                
+                val privateKeyFile = File(keysDir, "adbkey")
+                val publicKeyFile = File(keysDir, "adbkey.pub")
+                
+                // 导入私钥
+                privateKeyFile.writeText(privateKey)
+                // 导入公钥
+                publicKeyFile.writeText(publicKey)
+                
+                LogManager.d("MainViewModel", "ADB 密钥导入成功")
+                LogManager.d("MainViewModel", "私钥文件: ${privateKeyFile.absolutePath}")
+                LogManager.d("MainViewModel", "公钥文件: ${publicKeyFile.absolutePath}")
+                
+                Result.success(Unit)
+            } catch (e: Exception) {
+                LogManager.e("MainViewModel", "导入 ADB 密钥失败: ${e.message}", e)
+                Result.failure(e)
+            }
         }
     }
 }

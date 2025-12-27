@@ -6,13 +6,18 @@ APK_DEBUG := scrcpy-mobile/app/build/outputs/apk/debug/app-debug.apk
 APK_RELEASE := scrcpy-mobile/app/build/outputs/apk/release/app-release.apk
 EMULATOR_NAME := Pixel_9
 
+# 签名配置
+KEYSTORE_FILE := scrcpy-mobile/release.keystore
+KEYSTORE_PROPS := scrcpy-mobile/keystore.properties
+
 # 默认目标
 help:
 	@echo "可用命令："
 	@echo "  make emulator       - 启动虚拟机 ($(EMULATOR_NAME))"
 	@echo "  make build          - 编译 debug 版本"
 	@echo "  make debug          - 编译 debug 版本"
-	@echo "  make release        - 编译 release 版本"
+	@echo "  make keystore       - 生成签名密钥"
+	@echo "  make release        - 编译 release 版本（带签名）"
 	@echo "  make install        - 编译并安装 debug 版本到设备"
 	@echo "  make install-debug  - 编译并安装 debug 版本"
 	@echo "  make install-release- 编译并安装 release 版本"
@@ -37,12 +42,32 @@ build: debug
 
 debug:
 	@echo "正在编译 debug 版本..."
-	cd scrcpy-mobile && ./gradlew assembleDebug
+	cd scrcpy-mobile && ./gradlew assembleDebug -Pandroid.injected.abi=arm64-v8a
 
-# 编译 release 版本
-release:
+# 生成签名密钥
+keystore:
+	@if [ -f "$(KEYSTORE_FILE)" ]; then \
+		echo "密钥文件已存在: $(KEYSTORE_FILE)"; \
+	else \
+		echo "正在生成签名密钥..."; \
+		keytool -genkey -v -keystore $(KEYSTORE_FILE) \
+			-alias scrcpy-mobile \
+			-keyalg RSA -keysize 2048 -validity 10000 \
+			-storepass android -keypass android \
+			-dname "CN=Scrcpy Mobile, OU=Development, O=Scrcpy, L=Beijing, ST=Beijing, C=CN"; \
+		echo "密钥生成完成！"; \
+		echo "storeFile=release.keystore" > $(KEYSTORE_PROPS); \
+		echo "storePassword=android" >> $(KEYSTORE_PROPS); \
+		echo "keyAlias=scrcpy-mobile" >> $(KEYSTORE_PROPS); \
+		echo "keyPassword=android" >> $(KEYSTORE_PROPS); \
+		echo "配置文件已创建: $(KEYSTORE_PROPS)"; \
+	fi
+
+# 编译 release 版本（带签名）
+release: keystore
 	@echo "正在编译 release 版本..."
 	cd scrcpy-mobile && ./gradlew assembleRelease
+	@echo "Release APK 已生成: $(APK_RELEASE)"
 
 # 安装 debug 版本
 install: install-debug

@@ -1,3 +1,12 @@
+## 预览
+
+<p align="center">
+  <img src="app-home.png" alt="app home" width="30%" />
+  <img src="app-add-devices.png" alt="app add devices" width="30%" />
+  <img src="app-setting.png" alt="app setting" width="30%" />
+</p>
+
+
 AI 不需要看这份文档，也不需要更新这份文档
 
 ## 正在进行：

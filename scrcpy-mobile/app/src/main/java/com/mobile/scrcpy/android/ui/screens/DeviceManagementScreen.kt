@@ -14,128 +14,118 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mobile.scrcpy.android.adb.DeviceInfo
+import com.mobile.scrcpy.android.ui.components.DialogHeader
 import com.mobile.scrcpy.android.viewmodel.DeviceViewModel
 
 @Composable
 fun DeviceManagementScreen(
     viewModel: DeviceViewModel = viewModel(),
-    onDeviceSelected: (String) -> Unit = {}
+    onDeviceSelected: (String) -> Unit = {},
+    onDismiss: () -> Unit = {}
 ) {
     val connectedDevices by viewModel.connectedDevices.collectAsState()
     val connectionState by viewModel.connectionState.collectAsState()
-    
+
     var showAddDialog by remember { mutableStateOf(false) }
-    
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F7))
+
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+    val dialogHeight = screenHeight * 0.8f
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
     ) {
-        Column(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
-                .fillMaxHeight(0.8f)
-                .align(Alignment.Center)
+                .height(dialogHeight),
+            shape = RoundedCornerShape(8.dp),
+            color = Color(0xFFECECEC)
         ) {
-            // 标题栏
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "设备管理",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1C1C1E)
-                    )
-                    
-                    IconButton(
-                        onClick = { showAddDialog = true },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Color(0xFF007AFF))
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "添加设备",
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(1.dp))
-            
-            // 设备列表
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                if (connectedDevices.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
+            Column {
+                DialogHeader(
+                    title = "设备管理",
+                    onDismiss = onDismiss,
+                    showBackButton = false,
+                    trailingContent = {
+                        IconButton(onClick = { showAddDialog = true }) {
                             Icon(
-                                imageVector = Icons.Default.PhoneAndroid,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = Color(0xFFAAAAAA)
-                            )
-                            Text(
-                                text = "暂无连接设备",
-                                fontSize = 16.sp,
-                                color = Color(0xFF8E8E93)
-                            )
-                            Text(
-                                text = "点击右上角 + 添加设备",
-                                fontSize = 14.sp,
-                                color = Color(0xFFAAAAAA)
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "添加设备",
+                                tint = Color(0xFF007AFF)
                             )
                         }
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(connectedDevices) { device ->
-                            DeviceCard(
-                                device = device,
-                                onConnect = { onDeviceSelected(device.deviceId) },
-                                onDisconnect = { viewModel.disconnectDevice(device.deviceId) }
-                            )
+                )
+
+                // 设备列表
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    if (connectedDevices.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PhoneAndroid,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "暂无连接设备",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "点击右上角 + 添加设备",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(connectedDevices) { device ->
+                                DeviceCard(
+                                    device = device,
+                                    onConnect = { onDeviceSelected(device.deviceId) },
+                                    onDisconnect = { viewModel.disconnectDevice(device.deviceId) }
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     }
-    
+
+
     // 添加设备对话框
     if (showAddDialog) {
         AddDeviceDialog(
@@ -149,7 +139,7 @@ fun DeviceManagementScreen(
             }
         )
     }
-    
+
     // 连接成功后关闭对话框
     LaunchedEffect(connectionState) {
         if (connectionState is DeviceViewModel.ConnectionState.Success) {
@@ -168,7 +158,9 @@ fun DeviceCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -180,73 +172,49 @@ fun DeviceCard(
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xFF007AFF)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PhoneAndroid,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-                
+                Icon(
+                    imageVector = Icons.Default.PhoneAndroid,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = device.name,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF1C1C1E)
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = "${device.manufacturer} ${device.model}",
-                        fontSize = 13.sp,
-                        color = Color(0xFF8E8E93)
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = device.deviceId,
-                        fontSize = 12.sp,
-                        color = Color(0xFFAAAAAA)
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-            
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // 连接按钮
-                IconButton(
-                    onClick = onConnect,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF34C759))
-                ) {
+                IconButton(onClick = onConnect) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "连接",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
-                
-                // 断开按钮
-                IconButton(
-                    onClick = onDisconnect,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFFF3B30))
-                ) {
+
+                IconButton(onClick = onDisconnect) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "断开",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
             }
@@ -262,17 +230,10 @@ fun AddDeviceDialog(
 ) {
     var host by remember { mutableStateOf("") }
     var port by remember { mutableStateOf("5555") }
-    var deviceName by remember { mutableStateOf("") }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "添加设备",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-        },
+        title = { Text("添加设备") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
@@ -283,7 +244,7 @@ fun AddDeviceDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-                
+
                 OutlinedTextField(
                     value = port,
                     onValueChange = { port = it },
@@ -292,35 +253,25 @@ fun AddDeviceDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-                
-                OutlinedTextField(
-                    value = deviceName,
-                    onValueChange = { deviceName = it },
-                    label = { Text("设备名称（可选）") },
-                    placeholder = { Text("我的手机") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                
-                // 显示连接状态
-                when (connectionState) {
-                    is DeviceViewModel.ConnectionState.Connecting -> {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp))
-                            Text("正在连接...", fontSize = 14.sp, color = Color(0xFF007AFF))
-                        }
+
+                if (connectionState is DeviceViewModel.ConnectionState.Connecting) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("连接中...")
                     }
-                    is DeviceViewModel.ConnectionState.Error -> {
-                        Text(
-                            text = connectionState.message,
-                            fontSize = 14.sp,
-                            color = Color(0xFFFF3B30)
-                        )
-                    }
-                    else -> {}
+                }
+
+                if (connectionState is DeviceViewModel.ConnectionState.Error) {
+                    Text(
+                        text = connectionState.message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         },
@@ -328,20 +279,19 @@ fun AddDeviceDialog(
             Button(
                 onClick = {
                     val portInt = port.toIntOrNull() ?: 5555
-                    val name = deviceName.ifBlank { null }
-                    onConnect(host, portInt, name)
+                    onConnect(host, portInt, null)
                 },
-                enabled = host.isNotBlank() && connectionState !is DeviceViewModel.ConnectionState.Connecting,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007AFF))
+                enabled = host.isNotBlank() && connectionState !is DeviceViewModel.ConnectionState.Connecting
             ) {
                 Text("连接")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消", color = Color(0xFF8E8E93))
+                Text("取消")
             }
-        },
-        shape = RoundedCornerShape(16.dp)
+        }
     )
 }
+
+

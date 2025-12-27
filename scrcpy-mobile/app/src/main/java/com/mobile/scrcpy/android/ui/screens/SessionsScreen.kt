@@ -5,7 +5,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -26,7 +28,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -44,7 +45,7 @@ fun SessionsScreen(viewModel: MainViewModel) {
     val connectStatus by viewModel.connectStatus.collectAsState()
     val connectedSessionId by viewModel.connectedSessionId.collectAsState()
     val context = LocalContext.current
-    
+
     var sessionToDelete by remember { mutableStateOf<ScrcpySession?>(null) }
 
     // 连接状态对话框
@@ -53,7 +54,7 @@ fun SessionsScreen(viewModel: MainViewModel) {
         onCancel = { viewModel.cancelConnect() },
         onDismiss = { viewModel.clearConnectStatus() }
     )
-    
+
     // 删除确认对话框
     sessionToDelete?.let { session ->
         AlertDialog(
@@ -91,21 +92,26 @@ fun SessionsScreen(viewModel: MainViewModel) {
                     sessionData = sessionData,
                     index = index,
                     isConnected = connectedSessionId == session.id,
-                    isConnecting = connectStatus is ConnectStatus.Connecting && 
-                        (connectStatus as? ConnectStatus.Connecting)?.sessionId == session.id,
-                    onClick = { 
+                    isConnecting = connectStatus is ConnectStatus.Connecting &&
+                            (connectStatus as? ConnectStatus.Connecting)?.sessionId == session.id,
+                    onClick = {
                         viewModel.connectSession(session.id)
                     },
-                    onConnect = { 
+                    onConnect = {
                         viewModel.connectSession(session.id)
                     },
                     onEdit = { viewModel.showEditSessionDialog(session.id) },
                     onCopyUrl = { data ->
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clipboard =
+                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         val url = buildUrlScheme(data)
                         val clip = ClipData.newPlainText("URL Scheme", url)
                         clipboard.setPrimaryClip(clip)
-                        android.widget.Toast.makeText(context, context.getString(R.string.url_copied), android.widget.Toast.LENGTH_SHORT).show()
+                        android.widget.Toast.makeText(
+                            context,
+                            context.getString(R.string.url_copied),
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
                     },
                     onDelete = { sessionToDelete = session }
                 )
@@ -116,7 +122,7 @@ fun SessionsScreen(viewModel: MainViewModel) {
 
 fun buildUrlScheme(sessionData: com.mobile.scrcpy.android.data.SessionData): String {
     val params = mutableListOf<String>()
-    
+
     if (sessionData.maxSize.isNotBlank()) {
         params.add("max-size=${sessionData.maxSize}")
     }
@@ -138,10 +144,10 @@ fun buildUrlScheme(sessionData: com.mobile.scrcpy.android.data.SessionData): Str
     if (sessionData.enableAudio) {
         params.add("enable-audio=true")
     }
-    
+
     val port = if (sessionData.port.isNotBlank()) ":${sessionData.port}" else ""
     val query = if (params.isNotEmpty()) "?${params.joinToString("&")}" else ""
-    
+
     return "scrcpy2://${sessionData.host}${port}${query}"
 }
 
@@ -156,14 +162,18 @@ fun ConnectingDialog(
         is ConnectStatus.Connecting -> {
             Dialog(
                 onDismissRequest = { },
-                properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+                properties = DialogProperties(
+                    dismissOnBackPress = false,
+                    dismissOnClickOutside = false
+                )
             ) {
                 Card(
                     modifier = Modifier.size(160.dp),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surface
-                    )
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -181,7 +191,7 @@ fun ConnectingDialog(
                         Text(
                             text = connectStatus.message,
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -194,6 +204,7 @@ fun ConnectingDialog(
                 }
             }
         }
+
         is ConnectStatus.Failed -> {
             AlertDialog(
                 onDismissRequest = onDismiss,
@@ -206,6 +217,7 @@ fun ConnectingDialog(
                 }
             )
         }
+
         is ConnectStatus.Unauthorized -> {
             AlertDialog(
                 onDismissRequest = onDismiss,
@@ -218,7 +230,8 @@ fun ConnectingDialog(
                 }
             )
         }
-        else -> { }
+
+        else -> {}
     }
 }
 
@@ -238,20 +251,21 @@ fun SessionCard(
 ) {
     val cardColor = getCardColorByIndex(index)
     var showMenu by remember { mutableStateOf(false) }
-    
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp)
+            .height(120.dp)
             .combinedClickable(
                 enabled = !isConnecting,
                 onClick = onClick,
                 onLongClick = { showMenu = true }
             ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = cardColor
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(
             modifier = Modifier
@@ -261,23 +275,22 @@ fun SessionCard(
             Row(
                 modifier = Modifier.align(Alignment.TopStart),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Android,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(30.dp)
+                    modifier = Modifier.size(24.dp)
                 )
                 Text(
                     text = session.name,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontWeight = FontWeight.SemiBold
                 )
             }
-            
+
             Row(
                 modifier = Modifier.align(Alignment.TopEnd),
                 verticalAlignment = Alignment.CenterVertically,
@@ -301,8 +314,8 @@ fun SessionCard(
                         if (isConnected) {
                             Text(
                                 text = "${(0..20).random()}ms",
+                                style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF00FF00),
-                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium
                             )
                             Icon(
@@ -322,106 +335,58 @@ fun SessionCard(
                     }
                 }
             }
-            
+
             // 底部提示文字
             Text(
                 text = if (isConnected) "已连接" else stringResource(R.string.click_to_connect),
+                style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.align(Alignment.BottomStart),
-                color = Color.White.copy(alpha = 0.8f),
-                fontSize = 12.sp
+                color = Color.White.copy(alpha = 0.9f)
             )
-        }
-    }
-    
-    // 长按菜单
-    if (showMenu && sessionData != null) {
-        SessionMenuDialog(
-            session = session,
-            sessionData = sessionData,
-            onDismiss = { showMenu = false },
-            onConnect = {
-                showMenu = false
-                onConnect()
-            },
-            onEdit = {
-                showMenu = false
-                onEdit()
-            },
-            onCopyUrl = {
-                showMenu = false
-                onCopyUrl(sessionData)
-            },
-            onDelete = {
-                showMenu = false
-                onDelete()
-            }
-        )
-    }
-}
 
-@Composable
-fun SessionMenuDialog(
-    session: ScrcpySession,
-    sessionData: com.mobile.scrcpy.android.data.SessionData,
-    onDismiss: () -> Unit,
-    onConnect: () -> Unit,
-    onEdit: () -> Unit,
-    onCopyUrl: () -> Unit,
-    onDelete: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { 
-            Text(
-                text = session.name,
-                fontWeight = FontWeight.Bold
-            ) 
-        },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                MenuOption(stringResource(R.string.connect), onConnect)
-                HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
-                MenuOption(stringResource(R.string.edit_session), onEdit)
-                HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
-                MenuOption(stringResource(R.string.copy_url_scheme), onCopyUrl)
-                HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
-                MenuOption(
-                    text = stringResource(R.string.delete_session),
-                    onClick = onDelete,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
+            // 长按菜单
+            if (showMenu && sessionData != null) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 40.dp, end = 10.dp)
+                ) {
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("连接会话") },
+                            onClick = {
+                                showMenu = false
+                                onConnect()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("编辑会话") },
+                            onClick = {
+                                showMenu = false
+                                onEdit()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("复制会话") },
+                            onClick = {
+                                showMenu = false
+                                onCopyUrl(sessionData)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("删除会话", color = MaterialTheme.colorScheme.error) },
+                            onClick = {
+                                showMenu = false
+                                onDelete()
+                            }
+                        )
+                    }
+                }
             }
         }
-    )
-}
-
-@Composable
-fun MenuOption(
-    text: String, 
-    onClick: () -> Unit,
-    color: Color = MaterialTheme.colorScheme.onSurface
-) {
-    TextButton(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = ButtonDefaults.textButtonColors(
-            contentColor = color
-        )
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Start,
-            fontSize = 16.sp
-        )
     }
 }
 
@@ -449,14 +414,23 @@ fun EmptySessionsView() {
         Icon(
             imageVector = Icons.Default.Wifi,
             contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = stringResource(R.string.no_sessions),
             style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "点击右上角 + 按钮开始新的 scrcpy 会话。\n会话会保存在此处以便快速访问。",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+            modifier = Modifier.padding(horizontal = 32.dp)
         )
     }
 }
@@ -469,44 +443,4 @@ fun SessionColor.toComposeColor(): Color = when (this) {
     SessionColor.PURPLE -> Color(0xFF9B59B6)
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun EmptySessionsViewPreview() {
-    EmptySessionsView()
-}
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun SessionCardPreview() {
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        SessionCard(
-            session = ScrcpySession(
-                id = "1",
-                name = "iQOO Neo 9s Pro +",
-                color = SessionColor.BLUE,
-                isConnected = true,
-                hasWifi = true,
-                hasWarning = false
-            ),
-            sessionData = null,
-            index = 0,
-            isConnected = true
-        )
-        SessionCard(
-            session = ScrcpySession(
-                id = "2",
-                name = "小米 16",
-                color = SessionColor.RED,
-                isConnected = false,
-                hasWifi = true,
-                hasWarning = false
-            ),
-            sessionData = null,
-            index = 1,
-            isConnected = false
-        )
-    }
-}

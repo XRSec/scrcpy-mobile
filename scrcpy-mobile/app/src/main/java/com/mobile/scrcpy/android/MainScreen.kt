@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mobile.scrcpy.android.ui.screens.AboutScreen
@@ -32,6 +31,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     var showSettings by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
     var showAppearance by remember { mutableStateOf(false) }
+    var showLogManagement by remember { mutableStateOf(false) }
     val showAddDialog by viewModel.showAddSessionDialog.collectAsState()
     val editingSessionId by viewModel.editingSessionId.collectAsState()
     val sessionDataList by viewModel.sessionDataList.collectAsState()
@@ -180,8 +180,8 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
         com.mobile.scrcpy.android.ui.components.AddSessionDialog(
             sessionData = editingSession,
             onDismiss = { viewModel.hideAddSessionDialog() },
-            onConfirm = { session, host, port ->
-                viewModel.saveSession(session, host, port)
+            onConfirm = { sessionData ->
+                viewModel.saveSessionData(sessionData)
             }
         )
     }
@@ -204,6 +204,9 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
             },
             onNavigateToAppearance = {
                 showAppearance = true
+            },
+            onNavigateToLogManagement = {
+                showLogManagement = true
             }
         )
     }
@@ -220,146 +223,12 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
             onBack = { showAppearance = false }
         )
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    MaterialTheme {
-        var selectedTab by remember { mutableStateOf(0) }
-        var showSettings by remember { mutableStateOf(false) }
-        var showAbout by remember { mutableStateOf(false) }
-        var showAppearance by remember { mutableStateOf(false) }
-        var showAddDialog by remember { mutableStateOf(false) }
-        var showAddActionDialog by remember { mutableStateOf(false) }
-
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.title_sessions),
-                                style = MaterialTheme.typography.titleMedium // titleSmall - 更小 titleLarge - 更大 bodyLarge - 正文大号
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { showSettings = true }) {
-                            Icon(
-                                Icons.Default.Settings, 
-                                contentDescription = "设置",
-                                tint = Color(0xFF007AFF)
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = {
-                            if (selectedTab == 0) {
-                                showAddDialog = true
-                            } else {
-                                showAddActionDialog = true
-                            }
-                        }) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = if (selectedTab == 0) {
-                                    stringResource(R.string.add_session)
-                                } else {
-                                    stringResource(R.string.add_action)
-                                },
-                                tint = Color(0xFF007AFF)
-                            )
-                        }
-                    }
-                )
-            }
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-                    .background(Color(0xFFFFFFFF))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .width(160.dp)
-                            .height(44.dp)
-                            .clip(RoundedCornerShape(22.dp))
-                            .background(Color(0xFFE5E5EA))
-                            .padding(2.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(if (selectedTab == 0) Color.White else Color.Transparent),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            TextButton(
-                                onClick = { selectedTab = 0 },
-                                modifier = Modifier.fillMaxSize(),
-                                colors = ButtonDefaults.textButtonColors(
-                                    contentColor = if (selectedTab == 0) Color(0xFF007AFF) else Color(0xFF3C3C43)
-                                )
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.sessions),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(if (selectedTab == 1) Color.White else Color.Transparent),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            TextButton(
-                                onClick = { selectedTab = 1 },
-                                modifier = Modifier.fillMaxSize(),
-                                colors = ButtonDefaults.textButtonColors(
-                                    contentColor = if (selectedTab == 1) Color(0xFF007AFF) else Color(0xFF3C3C43)
-                                )
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.actions),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (selectedTab == 0) "会话列表预览" else "操作列表预览",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Gray
-                    )
-                }
-            }
-        }
+    
+    if (showLogManagement) {
+        com.mobile.scrcpy.android.ui.screens.LogManagementScreen(
+            onDismiss = { showLogManagement = false }
+        )
     }
 }
+
+

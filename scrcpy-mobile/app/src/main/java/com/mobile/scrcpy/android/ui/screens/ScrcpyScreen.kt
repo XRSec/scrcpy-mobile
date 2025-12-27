@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
@@ -18,8 +19,6 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardAlt
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.PowerSettingsNew
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -35,11 +34,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mobile.scrcpy.android.video.VideoDecoder
 import com.mobile.scrcpy.android.viewmodel.MainViewModel
 import dadb.AdbShellStream
 import kotlinx.coroutines.launch
-import android.util.Log
+import com.mobile.scrcpy.android.utils.LogManager
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,36 +53,36 @@ fun ScrcpyScreen(
     val scope = rememberCoroutineScope()
     val videoStream by viewModel.getVideoStream().collectAsState()
     
-    Log.d("ScrcpyScreen", "========== ScrcpyScreen 渲染 ==========")
-    Log.d("ScrcpyScreen", "videoStream 状态: ${if (videoStream != null) "有数据" else "null"}")
-    Log.d("ScrcpyScreen", "videoStream 类型: ${videoStream?.javaClass?.simpleName}")
+    LogManager.d("ScrcpyScreen", "========== ScrcpyScreen 渲染 ==========")
+    LogManager.d("ScrcpyScreen", "videoStream 状态: ${if (videoStream != null) "有数据" else "null"}")
+    LogManager.d("ScrcpyScreen", "videoStream 类型: ${videoStream?.javaClass?.simpleName}")
     
     var surfaceHolder by remember { mutableStateOf<SurfaceHolder?>(null) }
     var videoDecoder by remember { mutableStateOf<VideoDecoder?>(null) }
     // 当视频流和 Surface 都可用时，启动解码器
     LaunchedEffect(videoStream, surfaceHolder) {
-        Log.d("ScrcpyScreen", "========== LaunchedEffect 触发 ==========")
-        Log.d("ScrcpyScreen", "videoStream: ${videoStream != null}")
-        Log.d("ScrcpyScreen", "surfaceHolder: ${surfaceHolder != null}")
+        LogManager.d("ScrcpyScreen", "========== LaunchedEffect 触发 ==========")
+        LogManager.d("ScrcpyScreen", "videoStream: ${videoStream != null}")
+        LogManager.d("ScrcpyScreen", "surfaceHolder: ${surfaceHolder != null}")
         
         val stream = videoStream
         val holder = surfaceHolder
         
         if (stream != null && holder != null) {
             try {
-                Log.d("ScrcpyScreen", "准备启动解码器...")
+                LogManager.d("ScrcpyScreen", "准备启动解码器...")
                 videoDecoder?.stop()
                 videoDecoder = VideoDecoder(holder.surface)
                 scope.launch {
-                    Log.d("ScrcpyScreen", "开始调用 videoDecoder.start()")
+                    LogManager.d("ScrcpyScreen", "开始调用 videoDecoder.start()")
                     try {
                         videoDecoder?.start(stream)
                     } catch (e: Exception) {
-                        Log.e("ScrcpyScreen", "解码器启动失败: ${e.message}", e)
+                        LogManager.e("ScrcpyScreen", "解码器启动失败: ${e.message}", e)
                     }
                 }
             } catch (e: Exception) {
-                Log.e("ScrcpyScreen", "初始化解码器失败: ${e.message}", e)
+                LogManager.e("ScrcpyScreen", "初始化解码器失败: ${e.message}", e)
             }
         }
     }
@@ -106,57 +106,45 @@ fun ScrcpyScreen(
         color = Color.Black
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier.fillMaxSize()
+            // 视频显示区域
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
             ) {
-                // 顶部工具栏
-                TopAppBar(
-                    title = { Text("Scrcpy", color = Color.White) },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Black.copy(alpha = 0.8f)
+                if (videoStream != null) {
+                    // 使用 SurfaceView 显示视频
+                    AndroidView(
+                        factory = { ctx ->
+                            SurfaceView(ctx).apply {
+                                LogManager.d("ScrcpyScreen", "创建 SurfaceView")
+                                holder.addCallback(object : SurfaceHolder.Callback {
+                                    override fun surfaceCreated(holder: SurfaceHolder) {
+                                        LogManager.d("ScrcpyScreen", "Surface 已创建")
+                                        surfaceHolder = holder
+                                    }
+                                    
+                                    override fun surfaceChanged(
+                                        holder: SurfaceHolder,
+                                        format: Int,
+                                        width: Int,
+                                        height: Int
+                                    ) {
+                                        LogManager.d("ScrcpyScreen", "Surface 尺寸变化: ${width}x${height}")
+                                    }
+                                    
+                                    override fun surfaceDestroyed(holder: SurfaceHolder) {
+                                        LogManager.d("ScrcpyScreen", "Surface 已销毁")
+                                        surfaceHolder = null
+                                    }
+                                })
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize()
                     )
-                )
-                
-                // 视频显示区域
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (videoStream != null) {
-                        // 使用 SurfaceView 显示视频
-                        AndroidView(
-                            factory = { ctx ->
-                                SurfaceView(ctx).apply {
-                                    Log.d("ScrcpyScreen", "创建 SurfaceView")
-                                    holder.addCallback(object : SurfaceHolder.Callback {
-                                        override fun surfaceCreated(holder: SurfaceHolder) {
-                                            Log.d("ScrcpyScreen", "Surface 已创建")
-                                            surfaceHolder = holder
-                                        }
-                                        
-                                        override fun surfaceChanged(
-                                            holder: SurfaceHolder,
-                                            format: Int,
-                                            width: Int,
-                                            height: Int
-                                        ) {
-                                            Log.d("ScrcpyScreen", "Surface 尺寸变化: ${width}x${height}")
-                                        }
-                                        
-                                        override fun surfaceDestroyed(holder: SurfaceHolder) {
-                                            Log.d("ScrcpyScreen", "Surface 已销毁")
-                                            surfaceHolder = null
-                                        }
-                                    })
-                                }
-                            },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        CircularProgressIndicator(color = Color.White)
-                    }
+                } else {
+                    CircularProgressIndicator(color = Color.White)
                 }
             }
             
@@ -226,7 +214,7 @@ fun FloatingControlBar(
                             onClick = {
                                 scope.launch {
                                     val result = viewModel.sendKeyEvent(4) // KEYCODE_BACK
-                                    Log.d("FloatingControlBar", "返回键结果: $result")
+                                    LogManager.d("FloatingControlBar", "返回键结果: $result")
                                 }
                             }
                         )
@@ -236,7 +224,7 @@ fun FloatingControlBar(
                             onClick = {
                                 scope.launch {
                                     val result = viewModel.sendKeyEvent(3) // KEYCODE_HOME
-                                    Log.d("FloatingControlBar", "主页键结果: $result")
+                                    LogManager.d("FloatingControlBar", "主页键结果: $result")
                                 }
                             }
                         )
@@ -246,16 +234,7 @@ fun FloatingControlBar(
                             onClick = {
                                 scope.launch {
                                     val result = viewModel.sendKeyEvent(187) // KEYCODE_APP_SWITCH
-                                    Log.d("FloatingControlBar", "最近任务键结果: $result")
-                                }
-                            }
-                        )
-                        ControlButton(
-                            icon = Icons.Default.Refresh,
-                            contentDescription = "旋转屏幕",
-                            onClick = {
-                                scope.launch {
-                                    // TODO: 实现屏幕旋转
+                                    LogManager.d("FloatingControlBar", "最近任务键结果: $result")
                                 }
                             }
                         )
@@ -269,11 +248,11 @@ fun FloatingControlBar(
                             }
                         )
                         ControlButton(
-                            icon = Icons.Default.PowerSettingsNew,
-                            contentDescription = "电源",
+                            icon = Icons.Default.MoreHoriz,
+                            contentDescription = "更多选项",
                             onClick = {
                                 scope.launch {
-                                    viewModel.sendKeyEvent(26) // KEYCODE_POWER
+                                    // TODO: 显示更多选项菜单
                                 }
                             }
                         )
@@ -281,10 +260,19 @@ fun FloatingControlBar(
                             icon = Icons.Default.Close,
                             contentDescription = "关闭 Scrcpy",
                             onClick = {
+                                LogManager.d("FloatingControlBar", "开始关闭 Scrcpy")
+                                // 先停止解码器
+                                videoDecoder?.stop()
+                                // 立即关闭界面
+                                onClose()
+                                // 异步断开设备连接
                                 scope.launch {
-                                    videoDecoder?.stop()
-                                    viewModel.disconnectFromDevice()
-                                    onClose()
+                                    try {
+                                        viewModel.disconnectFromDevice()
+                                        LogManager.d("FloatingControlBar", "设备连接已断开")
+                                    } catch (e: Exception) {
+                                        LogManager.e("FloatingControlBar", "断开设备连接失败: ${e.message}", e)
+                                    }
                                 }
                             }
                         )
@@ -327,7 +315,7 @@ fun FloatingControlBar(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (isExpanded) Icons.Default.Close else Icons.Default.MoreHoriz,
+                        imageVector = Icons.Default.MoreHoriz,
                         contentDescription = if (isExpanded) "收起功能栏" else "展开功能栏",
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
@@ -356,3 +344,5 @@ fun ControlButton(
         )
     }
 }
+
+

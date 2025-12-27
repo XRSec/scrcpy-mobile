@@ -1,7 +1,7 @@
 package com.mobile.scrcpy.android.adb
 
 import android.content.Context
-import android.util.Log
+import com.mobile.scrcpy.android.utils.LogManager
 import dadb.Dadb
 import dadb.AdbKeyPair
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +41,7 @@ class AdbConnectionManager private constructor(private val context: Context) {
     }
     
     init {
-        Log.d(TAG, "ADB 连接管理器初始化")
+        LogManager.d(TAG, "ADB 连接管理器初始化")
         initKeyPair()
     }
     
@@ -59,14 +59,14 @@ class AdbConnectionManager private constructor(private val context: Context) {
             val publicKeyFile = File(keysDir, "adbkey.pub")
             
             if (!privateKeyFile.exists() || !publicKeyFile.exists()) {
-                Log.d(TAG, "生成新的 ADB 密钥对")
+                LogManager.d(TAG, "生成新的 ADB 密钥对")
                 AdbKeyPair.generate(privateKeyFile, publicKeyFile)
             }
             
             keyPair = AdbKeyPair.read(privateKeyFile, publicKeyFile)
-            Log.d(TAG, "ADB 密钥对加载成功")
+            LogManager.d(TAG, "ADB 密钥对加载成功")
         } catch (e: Exception) {
-            Log.e(TAG, "初始化密钥对失败: ${e.message}", e)
+            LogManager.e(TAG, "初始化密钥对失败: ${e.message}", e)
         }
     }
     
@@ -89,7 +89,7 @@ class AdbConnectionManager private constructor(private val context: Context) {
             if (connectionPool.containsKey(deviceId)) {
                 val connection = connectionPool[deviceId]!!
                 if (connection.isConnected()) {
-                    Log.d(TAG, "设备 $deviceId 已连接，复用现有连接")
+                    LogManager.d(TAG, "设备 $deviceId 已连接，复用现有连接")
                     return@withContext Result.success(deviceId)
                 } else {
                     // 连接已断开，移除旧连接
@@ -97,7 +97,7 @@ class AdbConnectionManager private constructor(private val context: Context) {
                 }
             }
             
-            Log.d(TAG, "连接新设备: $deviceId")
+            LogManager.d(TAG, "连接新设备: $deviceId")
             
             if (keyPair == null) {
                 return@withContext Result.failure(Exception("ADB 密钥对未初始化"))
@@ -131,10 +131,10 @@ class AdbConnectionManager private constructor(private val context: Context) {
             // 更新连接设备列表
             updateConnectedDevices()
             
-            Log.d(TAG, "设备 $deviceId 连接成功")
+            LogManager.d(TAG, "设备 $deviceId 连接成功")
             Result.success(deviceId)
         } catch (e: Exception) {
-            Log.e(TAG, "连接设备失败: ${e.message}", e)
+            LogManager.e(TAG, "连接设备失败: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -160,7 +160,7 @@ class AdbConnectionManager private constructor(private val context: Context) {
                 serialNumber = serialNumber
             )
         } catch (e: Exception) {
-            Log.e(TAG, "获取设备信息失败: ${e.message}", e)
+            LogManager.e(TAG, "获取设备信息失败: ${e.message}", e)
             DeviceInfo(
                 deviceId = deviceId,
                 name = customName ?: deviceId,
@@ -181,13 +181,13 @@ class AdbConnectionManager private constructor(private val context: Context) {
             if (connection != null) {
                 connection.close()
                 updateConnectedDevices()
-                Log.d(TAG, "设备 $deviceId 已断开")
+                LogManager.d(TAG, "设备 $deviceId 已断开")
                 Result.success(true)
             } else {
                 Result.failure(Exception("设备未连接"))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "断开设备失败: ${e.message}", e)
+            LogManager.e(TAG, "断开设备失败: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -225,12 +225,12 @@ class AdbConnectionManager private constructor(private val context: Context) {
      * 断开所有设备（应用退出时调用）
      */
     suspend fun disconnectAll() = withContext(Dispatchers.IO) {
-        Log.d(TAG, "断开所有设备连接")
+        LogManager.d(TAG, "断开所有设备连接")
         connectionPool.values.forEach { connection ->
             try {
                 connection.close()
             } catch (e: Exception) {
-                Log.e(TAG, "关闭连接失败: ${e.message}", e)
+                LogManager.e(TAG, "关闭连接失败: ${e.message}", e)
             }
         }
         connectionPool.clear()
@@ -250,7 +250,7 @@ class AdbConnectionManager private constructor(private val context: Context) {
                 null
             }
         } catch (e: Exception) {
-            Log.e(TAG, "获取公钥失败: ${e.message}", e)
+            LogManager.e(TAG, "获取公钥失败: ${e.message}", e)
             null
         }
     }
@@ -290,7 +290,7 @@ class AdbConnection(
             val response = dadb.shell(command)
             Result.success(response.output)
         } catch (e: Exception) {
-            Log.e(TAG, "执行命令失败: ${e.message}", e)
+            LogManager.e(TAG, "执行命令失败: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -302,7 +302,7 @@ class AdbConnection(
         try {
             dadb.openShell(command)
         } catch (e: Exception) {
-            Log.e(TAG, "异步执行命令失败: ${e.message}", e)
+            LogManager.e(TAG, "异步执行命令失败: ${e.message}", e)
         }
     }
     
@@ -313,7 +313,7 @@ class AdbConnection(
         try {
             dadb.openShell(command)
         } catch (e: Exception) {
-            Log.e(TAG, "打开 Shell 流失败: ${e.message}", e)
+            LogManager.e(TAG, "打开 Shell 流失败: ${e.message}", e)
             null
         }
     }
@@ -329,10 +329,10 @@ class AdbConnection(
             val forwarder = dadb.tcpForward(localPort, remotePort)
             forwarders[localPort] = forwarder
             
-            Log.d(TAG, "端口转发设置成功: $localPort -> $remotePort")
+            LogManager.d(TAG, "端口转发设置成功: $localPort -> $remotePort")
             Result.success(true)
         } catch (e: Exception) {
-            Log.e(TAG, "端口转发失败: ${e.message}", e)
+            LogManager.e(TAG, "端口转发失败: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -343,10 +343,10 @@ class AdbConnection(
     suspend fun removePortForward(localPort: Int): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             forwarders.remove(localPort)?.close()
-            Log.d(TAG, "端口转发已移除: $localPort")
+            LogManager.d(TAG, "端口转发已移除: $localPort")
             Result.success(true)
         } catch (e: Exception) {
-            Log.e(TAG, "移除端口转发失败: ${e.message}", e)
+            LogManager.e(TAG, "移除端口转发失败: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -358,10 +358,10 @@ class AdbConnection(
         try {
             val file = File(localPath)
             dadb.push(file, remotePath)
-            Log.d(TAG, "文件推送成功: $localPath -> $remotePath")
+            LogManager.d(TAG, "文件推送成功: $localPath -> $remotePath")
             Result.success(true)
         } catch (e: Exception) {
-            Log.e(TAG, "文件推送失败: ${e.message}", e)
+            LogManager.e(TAG, "文件推送失败: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -373,10 +373,10 @@ class AdbConnection(
         try {
             val file = File(localPath)
             dadb.pull(file, remotePath)
-            Log.d(TAG, "文件拉取成功: $remotePath -> $localPath")
+            LogManager.d(TAG, "文件拉取成功: $remotePath -> $localPath")
             Result.success(true)
         } catch (e: Exception) {
-            Log.e(TAG, "文件拉取失败: ${e.message}", e)
+            LogManager.e(TAG, "文件拉取失败: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -388,10 +388,10 @@ class AdbConnection(
         try {
             val file = File(apkPath)
             dadb.install(file)
-            Log.d(TAG, "APK 安装成功: $apkPath")
+            LogManager.d(TAG, "APK 安装成功: $apkPath")
             Result.success(true)
         } catch (e: Exception) {
-            Log.e(TAG, "APK 安装失败: ${e.message}", e)
+            LogManager.e(TAG, "APK 安装失败: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -402,10 +402,10 @@ class AdbConnection(
     suspend fun uninstallPackage(packageName: String): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             dadb.uninstall(packageName)
-            Log.d(TAG, "应用卸载成功: $packageName")
+            LogManager.d(TAG, "应用卸载成功: $packageName")
             Result.success(true)
         } catch (e: Exception) {
-            Log.e(TAG, "应用卸载失败: ${e.message}", e)
+            LogManager.e(TAG, "应用卸载失败: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -421,9 +421,9 @@ class AdbConnection(
             
             // 关闭 ADB 连接
             dadb.close()
-            Log.d(TAG, "连接已关闭: $deviceId")
+            LogManager.d(TAG, "连接已关闭: $deviceId")
         } catch (e: Exception) {
-            Log.e(TAG, "关闭连接失败: ${e.message}", e)
+            LogManager.e(TAG, "关闭连接失败: ${e.message}", e)
         }
     }
 }

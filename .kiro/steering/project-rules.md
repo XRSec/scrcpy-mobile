@@ -1,16 +1,22 @@
-## 注意事项
+## 基本规则
+1. 中文界面
+2. 不生成文档
+3. 不保留兼容接口
+4. 修改后不编译启动
+5. 每次修改前先 commit
 
-1. 讲中文
-2. 不生成 markdown 相关文档
-3. 不需要保留兼容接口
-4. 修改完成 后 make run
-5. 不要修改和读取 external/scrcpy-ios 代码
-6. 所有窗口统一高度 80% 宽度 95% 上下居中
-7. 使用类似 iOS 风格的卡片布局
-8. 更简洁的分隔线和圆角设计
+## UI 规范
+- 窗口：80%高×95%宽，背景 `Color(0xFFECECEC)`，圆角 8dp
+- 标题栏：`Color(0xFFE7E7E7)`，按钮 `Color(0xFF007AFF)`
+- 分组标题：13sp，高度 35dp
+- 列表项：15sp，高度 38dp
+- 内边距：10dp，间距：10dp
+
+## 统一组件
+- `SectionTitle`：分组标题
+- `AppDivider`：分隔线
+- `DialogHeader`：标题栏
+- SectionTitle 和 Card 同一 Column，Card 间用 Spacer(10.dp)
 
 ## 项目说明
-
-- [x] adb 库 参照 mobile-dev-inc/dadb
-- [x] scrcpy 库使用 scrcpy 使用 Genymobile/scrcpy
-- [x] 我们的项目完全参照 /wsvn53/scrcpy-mobile(暂未更新) 但是我们不需要 tailscare、vnc 功能 暂时不需要操作
+基于 dadb + scrcpy，参考 scrcpy-mobile，无 tailscare/vnc
